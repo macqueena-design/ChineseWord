@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>識字遊戲</title>
+    <link rel="apple-touch-icon" href="GirlAndBoypng">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        body { 
+            font-family: "PingFang HK", "Heiti TC", sans-serif; 
+            text-align: center; background-color: #FFF9E1; 
+            margin: 0; padding: 10px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: space-around; height: 100vh;
+            overflow: hidden; touch-action: manipulation;
+        }
+        #image-display { font-size: 25vh; margin: 10px 0; cursor: pointer; }
+        #instruction { font-size: 24px; color: #8D6E63; font-weight: bold; }
+        .options { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 500px; }
+        .btn { 
+            width: 100px; height: 100px; font-size: 70px; border: none; border-radius: 20px;
+            background: #FFAB91; color: white; box-shadow: 0 8px #e57373; cursor: pointer;
+            transition: 0.1s;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px #e57373; }
+        .correct { background: #FFD54F !important; box-shadow: 0 8px #FFB300 !important; }
+        .wrong { background: #BDBDBD !important; box-shadow: 0 8px #9E9E9E !important; }
+    </style>
+</head>
+<body>
+
+    <div id="instruction">這是什麼字？</div>
+    <div id="image-display" onclick="speakWord()">🍎</div>
+    
+    <div class="options" id="options-container">
+        </div>
+
+    <script>
+        // 單字庫：你可以隨時擴充這裡
+        const wordData = [
+            { char: "手", emoji: "✋" },
+            { char: "心", emoji: "❤️" },
+            { char: "狗", emoji: "🐶" },
+            { char: "耳", emoji: "👂" },
+            { char: "雨", emoji: "🌧" },
+            { char: "女", emoji: "👩🏼‍🦰" },
+            { char: "男", emoji: "👨🏼" },
+            { char: "魚", emoji: "🐟" },
+            { char: "口", emoji: "👄" },
+            { char: "花", emoji: "🌸" },
+            { char: "山", emoji: "⛰️" },
+            { char: "水", emoji: "💧" },
+            { char: "月", emoji: "🌙" },
+            { char: "火", emoji: "🔥" },
+            { char: "車", emoji: "🚗" }
+        ];
+
+        let currentItem;
+
+        function speakWord() {
+            if (!currentItem) return;
+            const msg = new SpeechSynthesisUtterance(currentItem.char);
+            msg.lang = 'zh-HK'; // 廣東話，如需普通話改為 'zh-CN'
+            msg.rate = 0.7;     // 語速慢一點
+            window.speechSynthesis.speak(msg);
+        }
+
+        function initGame() {
+            // 隨機選一個字
+            currentItem = wordData[Math.floor(Math.random() * wordData.length)];
+            document.getElementById('image-display').innerText = currentItem.emoji;
+            document.getElementById('instruction').innerText = "這是什麼字？";
+            
+            // 播放語音
+            speakWord();
+
+            // 準備選項
+            let choices = [currentItem.char];
+            while (choices.length < 3) {
+                let randomChar = wordData[Math.floor(Math.random() * wordData.length)].char;
+                if (!choices.includes(randomChar)) choices.push(randomChar);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            // 生成按鈕
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            choices.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = text;
+                btn.onclick = () => check(text, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function check(selectedText, btn) {
+            if (selectedText === currentItem.char) {
+                // 答對了
+                document.getElementById('image-display').innerText = "👍";
+                document.getElementById('instruction').innerText = "太棒了！這是「" + currentItem.char + "」";
+                btn.classList.add('correct');
+                
+                const btns = document.querySelectorAll('.btn');
+                btns.forEach(b => b.disabled = true);
+                
+                setTimeout(initGame, 2000); // 兩秒後下一題
+            } else {
+                // 答錯了
+                btn.classList.add('wrong');
+                document.getElementById('instruction').innerText = "再試一次看？";
+                setTimeout(() => btn.classList.remove('wrong'), 1000);
+            }
+        }
+
+        // 啟動
+        initGame();
+    </script>
+</body>
+</html>
